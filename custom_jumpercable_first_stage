@@ -1,0 +1,16 @@
+#!/bin/sh
+
+export PATH=/bin
+
+mount -t devtmpfs devtmpfs /dev
+mount -t ext4 -o discard,data=journal /dev/sda16 /userdata
+
+# redirect output to file
+exec 1>/userdata/first_stage.log 2>&1
+
+mkdir -p /userdata/system
+mount -t ext4 /userdata/system.img /userdata/system
+
+echo first stage booted, now switching root
+# chroot, can't overmount / on the current setup somehow
+exec chroot /userdata/system /custom_jumpercable

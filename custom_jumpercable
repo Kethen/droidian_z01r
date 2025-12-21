@@ -1,0 +1,164 @@
+#!/bin/sh
+
+# Copyright (C) 2020 UBports Foundation
+#
+# jumpercable is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# jumpercable is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with jumpercable.  If not, see <http://www.gnu.org/licenses/>.
+
+# shellcheck source=usr/lib/lxc-android-config/common.sh
+
+/bin/mount -t devtmpfs devtmpfs /dev
+
+mount_Z01R() {
+	mount -t ext4 -o discard,data=journal /dev/sda16 /userdata
+}
+
+initial_porting_script() {
+	echo "$(date) custom_jumpercable loaded" >> /userdata/initial_boot.log
+	echo "-- lxc-checkconfig --" >> /userdata/initial_boot.log
+	lxc-checkconfig >> /userdata/initial_boot.log
+	echo >> /userdata/initial_boot.log
+	echo "-- mount --" >> /userdata/initial_boot.log
+	mount >> /userdata/initial_boot.log
+	sync
+}
+
+dmesg_dump() {
+	bash -c 'dmesg -w > /userdata/pre_systemd_dmesg.log' &
+}
+
+protected_mount() {
+	part_name="$1"
+	part_blk="$2"
+	mount_point="$3"
+
+	new_mount_point=/userdata/protected_rw_parts/$1
+
+	if ! [ -e "$new_mount_point" ]
+	then
+		mkdir -p "${new_mount_point}_ref"
+		mount "$part_blk" "${new_mount_point}_ref"
+		cp -a "${new_mount_point}_ref" "$new_mount_point"
+		umount "${new_mount_point}_ref"
+	fi
+
+	mount -o bind "$new_mount_point" "$mount_point"
+}
+
+add_android_root_dirs() {
+	mount -o remount,rw /
+
+	# this actually fails, /var/lib/lxc/android/android-rootfs.img is perfectly sized
+	mount /var/lib/lxc/android/android-rootfs.img /android
+	if ! [ -e /android/APD ]
+	then
+		umount /android
+		dd if=/dev/zero bs=10M count=1 >> /var/lib/lxc/android/android-rootfs.img
+		e2fsck -f /var/lib/lxc/android/android-rootfs.img
+		resize2fs /var/lib/lxc/android/android-rootfs.img
+		mount /var/lib/lxc/android/android-rootfs.img /android
+		mkdir -p /android/APD
+		mkdir -p /android/asdf
+	fi
+	umount /android
+	#mount -o remount,ro /
+}
+
+mount_android() {
+	# mount images
+	mount -o ro /var/lib/lxc/android/android-rootfs.img /android
+	mount -o ro /vendor.img /android/vendor
+
+	# /android/mnt
+	mount -t tmpfs tmpfs /android/mnt
+
+	# ro mounts, no rm -rf protection needed
+	mount -o ro /dev/sde4 /android/vendor/firmware_mnt
+	mount -o ro /dev/sde9 /android/vendor/dsp
+	mount -o ro /dev/sde5 /android/vendor/bt_firmware
+
+	# rw mounts, add rm -rf protection
+	protected_mount factory /dev/sdf7 /android/vendor/factory
+	mkdir /android/mnt/vendor/persist
+	protected_mount persist /dev/sda9 /android/mnt/vendor/persist
+	protected_mount ADF /dev/sda8 /android/vendor/ADF
+	protected_mount APD /dev/sda10 /android/APD
+	protected_mount asdf /dev/sda5 /android/asdf
+
+	# mask fstab so that it will not be attempted later
+	mount -o bind /dev/null /android/vendor/etc/fstab.qcom
+
+	# mount configfs
+	mount -t configfs configfs /android/config
+}
+
+bind_overlay() {
+	for f in $(find /overlay)
+	do
+		if [ -f "$f" ]
+		then
+			tgt="$(echo $f | sed -e 's#/overlay##')"
+			echo binding "$f" to "$tgt"
+			mount -o bind "$f" "$tgt"
+		fi
+	done
+}
+
+charger_mode() {
+	# TODO
+	echo "TODO: charger mode"
+}
+
+prep_hardware() {
+	# wifi
+	echo "ON" > /dev/wlan
+
+	# torch
+	chown 32011:32011 '/sys/class/leds/led:torch_0/brightness' '/sys/class/leds/led:switch_0/brightness'
+}
+
+# Make sure to set up everything only on first-stage boot.
+if [ ! -e /proc/self/exe ]; then
+	export PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
+	# Put all of this script's output into /dev/kmsg
+	exec 1>/dev/kmsg 2>&1
+
+	echo "<< Ubuntu Touch first stage init >>"
+
+	# Mount a tmpfs in /run of rootfs to put the future image.fstab
+	mount -o rw,nosuid,noexec,relatime,mode=755 -t tmpfs tmpfs /run
+	#mount -t devtmpfs devtmpfs /dev
+	mkdir /dev/pts
+	mount -t devpts -o noexec,nosuid,gid=5,mode=0620 devpts /dev/pts || true
+	mount -t sysfs none /sys
+	mount -t proc none /proc
+
+	# Distinguish between halium-boot & jumpercable boot process
+	touch /dev/.halium_jumpercable
+	chmod 000 /dev/.halium_jumpercable
+
+	mount_Z01R
+	exec 1>/userdata/initial_boot.log 2>&1
+	add_android_root_dirs
+	mount_android
+	bind_overlay
+	charger_mode
+	prep_hardware
+	initial_porting_script
+	#process_bind_mounts
+	dmesg_dump
+fi
+
+# Execute actual init now
+exec /sbin/init $@

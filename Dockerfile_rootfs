@@ -1,0 +1,38 @@
+# deploy droidian rootfs
+FROM scratch
+COPY ./busybox /busybox
+RUN ["/busybox", "ls", "/"]
+COPY droidian.tar /
+RUN ["/busybox", "tar", "--exclude", "./dev/*", "--exclude", "./etc/hostname", "--exclude", "./etc/resolv.conf", "--exclude", "./etc/hosts", "-xvf", "/droidian.tar"]
+RUN rm /droidian.tar
+
+COPY ./overlay.tar /overlay.tar
+RUN tar -xf /overlay.tar; rm /overlay.tar
+RUN cp -r /overlay/* /; rm -r /overlay
+
+RUN apt update
+
+# install podman, podman-toolbox and distrobox
+RUN apt install -y podman podman-toolbox distrobox
+
+# copy jumper cable
+COPY custom_jumpercable /
+
+# copy android vendor image
+COPY vendor.img /
+
+# usb debug
+COPY usb_debug.service /usr/lib/systemd/system/usb_debug.service
+RUN ln -s /usr/lib/systemd/system/usb_debug.service /usr/lib/systemd/system/sysinit.target.wants/usb_debug.service
+COPY usb_debug.sh /
+
+# prepare first stage
+RUN apt install -y busybox-static
+RUN mkdir -p /first_stage/bin
+RUN cp /usr/bin/busybox /first_stage/bin
+RUN chroot /first_stage /bin/busybox --install /bin
+RUN mkdir -p /first_stage/dev
+RUN mkdir -p /first_stage/userdata
+RUN mkdir -p /first_stage/vendor
+COPY custom_jumpercable_first_stage /first_stage/custom_jumpercable
+RUN touch /first_stage/init

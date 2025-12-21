@@ -1,0 +1,6 @@
+[Unit]
+Description=start usb debugging
+
+[Service]
+ExecStart=bash /usb_debug.sh
+
