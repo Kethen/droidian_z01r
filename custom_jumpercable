@@ -103,11 +103,11 @@ mount_android() {
 }
 
 bind_overlay() {
-	for f in $(find /overlay)
+	for f in $(find /overlay_bind)
 	do
 		if [ -f "$f" ]
 		then
-			tgt="$(echo $f | sed -e 's#/overlay##')"
+			tgt="$(echo $f | sed -e 's#/overlay_bind##')"
 			echo binding "$f" to "$tgt"
 			mount -o bind "$f" "$tgt"
 		fi
@@ -121,7 +121,7 @@ charger_mode() {
 
 prep_hardware() {
 	# wifi
-	echo "ON" > /dev/wlan
+	echo "ON" > /dev/wlan &
 
 	# torch
 	chown 32011:32011 '/sys/class/leds/led:torch_0/brightness' '/sys/class/leds/led:switch_0/brightness'

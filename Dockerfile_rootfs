@@ -12,8 +12,7 @@ RUN cp -r /overlay/* /; rm -r /overlay
 
 RUN apt update
 
-# install podman, podman-toolbox and distrobox
-RUN apt install -y podman podman-toolbox distrobox
+RUN apt install -y podman podman-toolbox distrobox tmux
 
 # copy jumper cable
 COPY custom_jumpercable /
