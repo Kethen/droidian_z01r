@@ -79,6 +79,10 @@ mount_android() {
 	mount -o ro /var/lib/lxc/android/android-rootfs.img /android
 	mount -o ro /vendor.img /android/vendor
 
+	# /android/data
+	mkdir -p /userdata/android_data
+	mount -o bind /userdata/android_data /android/data
+
 	# /android/mnt
 	mount -t tmpfs tmpfs /android/mnt
 
