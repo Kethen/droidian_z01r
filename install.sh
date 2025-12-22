@@ -11,7 +11,7 @@ adb shell mkdir /tmp/userdata
 adb shell mount /dev/block/bootdevice/by-name/system_a /tmp/system_a
 adb shell mount /dev/block/bootdevice/by-name/system_b /tmp/system_b
 adb shell mount /dev/block/bootdevice/by-name/userdata /tmp/userdata
-adb shell fallocate -l 10G /tmp/userdata/system.img
+adb shell fallocate -l 42G /tmp/userdata/system.img
 adb shell mkfs.ext4 /tmp/userdata/system.img
 adb shell mkdir /tmp/userdata/system
 adb shell mount /tmp/userdata/system.img /tmp/userdata/system
