@@ -12,7 +12,7 @@ RUN cp -r /overlay/* /; rm -r /overlay
 
 RUN apt update
 
-RUN apt install -y podman podman-toolbox distrobox tmux busybox-static openssh-server
+RUN apt install -y podman podman-toolbox distrobox tmux busybox-static openssh-server usbutils
 RUN systemctl enable ssh
 RUN echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/90-nopassword.conf; echo 'KbdInteractiveAuthentication no' >> /etc/ssh/sshd_config.d/90-nopassword.conf
 
