@@ -130,6 +130,9 @@ prep_hardware() {
 
 	# torch
 	chown 32011:32011 '/sys/class/leds/led:torch_0/brightness' '/sys/class/leds/led:switch_0/brightness'
+
+	# disable gesture reports
+	echo 0 > /sys/devices/platform/soc/894000.i2c/i2c-3/3-0038/fts_gesture_mode
 }
 
 # Make sure to set up everything only on first-stage boot.
