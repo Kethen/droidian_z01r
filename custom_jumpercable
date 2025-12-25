@@ -132,8 +132,14 @@ prep_hardware() {
 	# torch
 	chown 32011:32011 '/sys/class/leds/led:torch_0/brightness' '/sys/class/leds/led:switch_0/brightness'
 
-	# disable gesture reports
-	echo 0 > /sys/devices/platform/soc/894000.i2c/i2c-3/3-0038/fts_gesture_mode
+	# disable gesture reports, droidian mobile-settings likes to enable it, but in a way that the report doesn't get send on evdev, then eventually triggers a oops
+	while ! [ -e /sys/bus/i2c/devices/3-0038/fts_gesture_mode ]
+	do
+		sleep 1
+	done
+	echo 0 > /sys/bus/i2c/devices/3-0038/fts_gesture_mode
+	mount -o bind /dev/null /sys/bus/i2c/devices/3-0038/fts_gesture_mode
+
 
 	# set cpu governor
 	for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do echo 'schedutil' | tee $f; done
