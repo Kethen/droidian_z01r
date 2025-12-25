@@ -18,6 +18,7 @@
 # shellcheck source=usr/lib/lxc-android-config/common.sh
 
 /bin/mount -t devtmpfs devtmpfs /dev
+/bin/mount -t sysfs sysfs /sys
 
 mount_Z01R() {
 	mount -t ext4 -o discard,data=journal /dev/sda16 /userdata
@@ -133,6 +134,9 @@ prep_hardware() {
 
 	# disable gesture reports
 	echo 0 > /sys/devices/platform/soc/894000.i2c/i2c-3/3-0038/fts_gesture_mode
+
+	# set cpu governor
+	for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do echo 'schedutil' | tee $f; done
 }
 
 # Make sure to set up everything only on first-stage boot.
