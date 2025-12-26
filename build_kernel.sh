@@ -4,7 +4,7 @@ IMAGE=debian_z01r_kernel
 
 if ! [ -e kernel_src ]
 then
-	git clone https://github.com/Kethen/android_kernel_asus_sdm845.git -b halium-11.0 --depth 1 kernel_src
+	git clone https://github.com/Kethen/android_kernel_asus_sdm845.git -b halium-11.0-droidian --depth 1 kernel_src
 fi
 
 if ! [ -e clang_arm ]

@@ -34,7 +34,7 @@ podman run \
 		--second_offset 0x0 \
 		--tags_offset 0x100 \
 		--pagesize 4096 \
-		--cmdline "androidboot.hardware=qcom androidboot.console=ttyMSM0 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 service_locator.enable=1 swiotlb=2048 androidboot.configfs=true androidboot.usbcontroller=a600000.dwc3 loop.max_part=7 console=tty0 systemd.log_level=debug systemd.default_standard_output=kmsg systemd.log_target=kmsg systemd.journald.forward_to_kmsg=1 systemd.log_ratelimit_kmsg=0" \
+		--cmdline "androidboot.hardware=qcom androidboot.console=ttyMSM0 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 service_locator.enable=1 swiotlb=2048 androidboot.configfs=true androidboot.usbcontroller=a600000.dwc3 loop.max_part=7 console=tty0" \
 		-o /boot_out/boot_recovery.img \
 		--os_version 11 \
 		--os_patch_level 2024-02 \

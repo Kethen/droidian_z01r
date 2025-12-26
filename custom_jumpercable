@@ -166,7 +166,7 @@ if [ ! -e /proc/self/exe ]; then
 	touch /dev/.halium_jumpercable
 	chmod 000 /dev/.halium_jumpercable
 
-	mount_Z01R
+	#mount_Z01R
 	exec 1>/userdata/initial_boot.log 2>&1
 	add_android_root_dirs
 	mount_android
