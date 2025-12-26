@@ -1,0 +1,32 @@
+#!/bin/bash
+
+protected_mount() {
+	part_name="$1"
+	part_blk="$2"
+	mount_point="$3"
+
+	new_mount_point=/userdata/protected_rw_parts/$1
+
+	if ! [ -e "$new_mount_point" ]
+	then
+		mkdir -p "${new_mount_point}_ref"
+		mount "$part_blk" "${new_mount_point}_ref"
+		cp -a "${new_mount_point}_ref" "$new_mount_point"
+		umount "${new_mount_point}_ref"
+	fi
+
+	mount -o bind "$new_mount_point" "$mount_point"
+}
+
+# rm -rf protection
+protected_mount factory /dev/sdf7 /android/vendor/factory
+mkdir -p /android/mnt/vendor/persist
+protected_mount persist /dev/sda9 /android/mnt/vendor/persist
+protected_mount ADF /dev/sda8 /android/vendor/ADF
+protected_mount APD /dev/sda10 /android/APD
+protected_mount asdf /dev/sda5 /android/asdf
+
+# ro mounts, no rm -rf protection needed
+mount -o ro /dev/sde4 /android/vendor/firmware_mnt
+mount -o ro /dev/sde9 /android/vendor/dsp
+mount -o ro /dev/sde5 /android/vendor/bt_firmware

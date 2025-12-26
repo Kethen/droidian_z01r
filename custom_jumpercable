@@ -88,22 +88,6 @@ mount_android() {
 	# /android/mnt
 	mount -t tmpfs tmpfs /android/mnt
 
-	# ro mounts, no rm -rf protection needed
-	mount -o ro /dev/sde4 /android/vendor/firmware_mnt
-	mount -o ro /dev/sde9 /android/vendor/dsp
-	mount -o ro /dev/sde5 /android/vendor/bt_firmware
-
-	# rw mounts, add rm -rf protection
-	protected_mount factory /dev/sdf7 /android/vendor/factory
-	mkdir /android/mnt/vendor/persist
-	protected_mount persist /dev/sda9 /android/mnt/vendor/persist
-	protected_mount ADF /dev/sda8 /android/vendor/ADF
-	protected_mount APD /dev/sda10 /android/APD
-	protected_mount asdf /dev/sda5 /android/asdf
-
-	# mask fstab so that it will not be attempted later
-	mount -o bind /dev/null /android/vendor/etc/fstab.qcom
-
 	# mount configfs
 	mount -t configfs configfs /android/config
 }
@@ -149,8 +133,10 @@ prep_hardware() {
 if [ ! -e /proc/self/exe ]; then
 	export PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
-	# Put all of this script's output into /dev/kmsg
-	exec 1>/dev/kmsg 2>&1
+	mount -o remount,rw /
+
+	# Put all of this script's output into log file
+	exec 1>/custom_jumpercable.log 2>&1
 
 	echo "<< Ubuntu Touch first stage init >>"
 
@@ -166,8 +152,6 @@ if [ ! -e /proc/self/exe ]; then
 	touch /dev/.halium_jumpercable
 	chmod 000 /dev/.halium_jumpercable
 
-	#mount_Z01R
-	exec 1>/userdata/initial_boot.log 2>&1
 	add_android_root_dirs
 	mount_android
 	bind_overlay
