@@ -35,8 +35,8 @@ initial_porting_script() {
 }
 
 dmesg_dump() {
-	mv /userdata/pre_systemd_dmesg.log /userdata/pre_systemd_dmesg_last.log
-	bash -c 'dmesg -w > /userdata/pre_systemd_dmesg.log' &
+	mv /pre_systemd_dmesg.log /pre_systemd_dmesg_last.log
+	bash -c 'dmesg -w > /pre_systemd_dmesg.log' &
 }
 
 protected_mount() {

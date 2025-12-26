@@ -1,5 +1,7 @@
 #!/bin/bash
 
+exec 1>/protected_vendor_partition_mount.log 2>&1
+
 protected_mount() {
 	part_name="$1"
 	part_blk="$2"
@@ -11,7 +13,9 @@ protected_mount() {
 	then
 		mkdir -p "${new_mount_point}_ref"
 		mount "$part_blk" "${new_mount_point}_ref"
+		echo copying "$part_name"
 		cp -a "${new_mount_point}_ref" "$new_mount_point"
+		find "$new_mount_point"
 		umount "${new_mount_point}_ref"
 	fi
 
@@ -30,3 +34,5 @@ protected_mount asdf /dev/sda5 /android/asdf
 mount -o ro /dev/sde4 /android/vendor/firmware_mnt
 mount -o ro /dev/sde9 /android/vendor/dsp
 mount -o ro /dev/sde5 /android/vendor/bt_firmware
+
+mount -o rbind /android/mnt /var/lib/lxc/android/rootfs/mnt
