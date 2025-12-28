@@ -12,7 +12,10 @@ RUN cp -r /overlay/* /; rm -r /overlay
 
 RUN apt update
 
-RUN apt install -y podman podman-toolbox distrobox tmux busybox-static openssh-server usbutils git mobile-power-saver-droidian-miatoll droidian-quirks-firefox-gpu
+RUN apt install -y podman podman-toolbox distrobox flatpak \
+	tmux busybox-static openssh-server usbutils git apt-file bind9-dnsutils traceroute mtr \
+	mobile-power-saver-droidian-miatoll droidian-quirks-firefox-gpu
+RUN apt-file update
 RUN systemctl enable ssh
 RUN echo 'PasswordAuthentication no' > /etc/ssh/sshd_config.d/90-nopassword.conf; echo 'KbdInteractiveAuthentication no' >> /etc/ssh/sshd_config.d/90-nopassword.conf
 
