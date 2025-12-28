@@ -129,6 +129,11 @@ prep_hardware() {
 	for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_governor; do echo 'schedutil' | tee $f; done
 }
 
+nm_resolv() {
+	rm /etc/resolv.conf
+	ln -s /var/run/NetworkManager/resolv.conf /etc/resolv.conf
+}
+
 # Make sure to set up everything only on first-stage boot.
 if [ ! -e /proc/self/exe ]; then
 	export PATH=/bin:/usr/bin:/sbin:/usr/sbin
@@ -157,6 +162,7 @@ if [ ! -e /proc/self/exe ]; then
 	bind_overlay
 	charger_mode
 	prep_hardware
+	nm_resolv
 	initial_porting_script
 	#process_bind_mounts
 	dmesg_dump
